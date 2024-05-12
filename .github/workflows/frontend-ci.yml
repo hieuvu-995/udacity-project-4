@@ -20,14 +20,11 @@ jobs:
       with:
         node-version: 18
         cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+        cache-dependency-path: ./starter/frontend/package-lock.json
 
     - name: Install Dependencies
-      working-directory: starter/frontend
+      working-directory: ./starter/frontend
       run: npm ci
-
-    - name: Checkout Run Lint
-      run: cd starter/frontend && npm run lint
 
   Test:
     runs-on: ubuntu-latest
@@ -41,13 +38,13 @@ jobs:
       with:
         node-version: 18
         cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+        cache-dependency-path: ./starter/frontend/package-lock.json
     - name: Install Dependencies
-      working-directory: starter/frontend
+      working-directory: ./starter/frontend
       run: npm ci
   
     - name: Test
-      run: cd starter/frontend && npm run test
+      run: npm run test
       
   Build:
     needs: [Linting, Test]
