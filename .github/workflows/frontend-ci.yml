@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
+  Linting:
+    name: Linting
     runs-on: ubuntu-latest
     defaults:
       run:
