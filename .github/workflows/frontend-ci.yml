@@ -1,69 +1,65 @@
-name: Node.js CI
+name: Frontend Continuous Integration
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
       - main
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  lint:
-    name: Lint
+  Linting:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./starter/frontend
-    strategy:
-      matrix:
-        node-version: ['16.x', '18.x', '20.x']
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: './starter/frontend/package-lock.json'
-      - name: Install dependencies
-        run: npm ci
+    environment: Devlopmnet Environment
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./starter/frontend
-    strategy:
-      matrix:
-        node-version: ['16.x', '18.x', '20.x']
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: './starter/frontend/package-lock.json'
-      - name: Install dependencies
-        run: npm ci
-      - name: Run tests
-        run: npm run test
+    - name: Check the Repository
+      uses: actions/checkout@v3
 
-  build:
-    name: Build
-    needs: [lint, test]  # This line specifies both lint and test jobs as dependencies
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: ./starter/frontend/package-lock.json
+
+    - name: Install Dependencies
+      working-directory: ./starter/frontend
+      run: npm ci
+
+  Test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./starter/frontend
+
     steps:
-      - uses: actions/checkout@v3
+    - name: Check the Repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: ./starter/frontend/package-lock.json
+    - name: Install Dependencies
+      working-directory: ./starter/frontend
+      run: npm ci
+
+    - name: Test
+      run: npm run test
+
+  Build:
+    needs: [Linting, Test]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check the Repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: starter/frontend/package-lock.json
 
     - name: Build and Run Docker Image
       run: |
