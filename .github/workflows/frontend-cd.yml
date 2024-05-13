@@ -1,4 +1,4 @@
-name: Frontend Continuous Deployment
+name: Frontend CD
 
 on:
   workflow_dispatch:
@@ -7,62 +7,70 @@ on:
       - main
 
 jobs:
-  Linting:
+  Lint:
     runs-on: ubuntu-latest
-    environment: Devlopmnet Environment
+    environment: Production Env
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
 
     steps:
-    - name: Check the Repository
+    - name: Setup the Repository
       uses: actions/checkout@v3
 
-    - name: Use Node.js 18
+    - name: Use Node.js 20-version
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+        cache-dependency-path: './starter/frontend/package-lock.json'
 
-    - name: Install Dependencies
-      working-directory: starter/frontend
+    - name: Install node.js dependencies
       run: npm ci
 
   Test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
 
     steps:
-    - name: Check the Repository
+    - name: Setup the Repository
       uses: actions/checkout@v3
 
-    - name: Use Node.js 18
+    - name: Use Node.js 20-version
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+        cache-dependency-path: ''./starter/frontend/package-lock.json'
         
-    - name: Install Dependencies
-      working-directory: starter/frontend
+    - name: Install node.js dependencies
       run: npm ci
   
-    - name: Test
-      run: cd starter/frontend && npm run test
-
-
+    - name: Run Test
+      run: npm run test
 
   Build:
-    needs: [Linting, Test]
+    needs: [Lint, Test]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
     
     steps:
-    - name: Check the Repository
+    - name: Setup the Repository
       uses: actions/checkout@v3
     
-    - name: Use Node.js 18
+    - name: Use Node.js 20
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+        cache-dependency-path: ''./starter/frontend/package-lock.json'
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -70,31 +78,26 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{secrets.AWS_SESSION_TOKEN}}
-        aws-region: us-east-1
+        aws-region: ${{ secrets.AWS_REGION }}
   
-
-    - name: Login to Amazon 
+    - name: Login to AWS ECR 
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
-
-
 
     - name: Build and Push Docker Image
       working-directory: starter/frontend
       env:
-        IMAGE_TAG: latest
+        IMAGE_TAG: ${{ github.sha }}
         REPO_NAME: frontend
       run: |
         docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 103245859808.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
         docker push 103245859808.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-    
-
-    - name: Configure Kubeconfig
+  
+    - name: Update the kubeconfig file
       run:
-       aws eks update-kubeconfig --name cluster --region us-east-1
+       aws eks update-kubeconfig --name cluster --region $AWS_REGION
 
-
-    - name: Deploy Docker Image to Amazon EKS
+    - name: Deploy the Image to Cluster
       working-directory: starter/frontend/k8s
       env:
         IMAGE_TAG: latest

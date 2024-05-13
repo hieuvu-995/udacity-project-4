@@ -1,4 +1,4 @@
-name: Frontend Continuous Integration
+name: Frontend CI
 
 on:
   workflow_dispatch:
@@ -7,67 +7,70 @@ on:
       - main
 
 jobs:
-  Linting:
+  Lint:
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
         working-directory: ./starter/frontend
-    environment: Devlopmnet Environment
+    environment: Production Env
 
     steps:
-    - name: Check the Repository
+    - name: Setup the Repository
       uses: actions/checkout@v3
 
-    - name: Use Node.js 18
+    - name: Use Node.js 20-version
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
         cache-dependency-path: './starter/frontend/package-lock.json'
 
-    - name: Install Dependencies
+    - name: Install Node.js Dependencies
       run: npm ci
 
-    - name: Checkout Run Lint
+    - name: Run Lint
       run: npm run lint
 
   Test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./starter/frontend
 
     steps:
-    - name: Check the Repository
+    - name: Setup the Repository
       uses: actions/checkout@v3
 
-    - name: Use Node.js 18
+    - name: Use Node.js 20-version
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
         cache-dependency-path: './starter/frontend/package-lock.json'
-    - name: Install Dependencies
-      working-directory: ./starter/frontend
+    - name: Install Node.js Dependencies
       run: npm ci
   
-    - name: Test
-      run: cd starter/frontend && npm run test
+    - name: Run Test
+      run: npm run test
       
   Build:
-    needs: [Linting, Test]
+    needs: [Lint, Test]
     runs-on: ubuntu-latest
     
     steps:
-    - name: Check the Repository
+    - name: Setup the Repository
       uses: actions/checkout@v3
     
-    - name: Use Node.js 18
+    - name: Use Node.js 20-version
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20
         cache: 'npm'
-        cache-dependency-path: starter/frontend/package-lock.json
+        cache-dependency-path: './starter/frontend/package-lock.json'
 
-    - name: Build and Run Docker Image
+    - name: Build Docker Image
       run: |
         cd starter/frontend
         docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:latest .
