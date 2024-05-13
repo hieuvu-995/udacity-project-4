@@ -45,7 +45,7 @@ jobs:
       with:
         node-version: 20
         cache: 'npm'
-        cache-dependency-path: ''./starter/frontend/package-lock.json'
+        cache-dependency-path: './starter/frontend/package-lock.json'
         
     - name: Install node.js dependencies
       run: npm ci
@@ -70,7 +70,7 @@ jobs:
       with:
         node-version: 20
         cache: 'npm'
-        cache-dependency-path: ''./starter/frontend/package-lock.json'
+        cache-dependency-path: './starter/frontend/package-lock.json'
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
